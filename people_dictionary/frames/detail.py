@@ -1,7 +1,7 @@
 # frames/detail.py
 import tkinter as tk
 from tkinter import messagebox
-from database import get_person_by_id, update_person, delete_person
+#from database import get_person_by_id, update_person, delete_person
 
 class DetailFrame(tk.Frame):
     def __init__(self, master, controller):

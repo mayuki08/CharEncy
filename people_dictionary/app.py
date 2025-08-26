@@ -1,11 +1,5 @@
-# app.py
-
 import tkinter as tk
-from database import init_db
 from frames.menu import MenuFrame
-from frames.register import RegisterFrame
-from frames.search import SearchFrame
-from frames.detail import DetailFrame
 
 class MainApp(tk.Tk):
     def __init__(self):
@@ -13,29 +7,22 @@ class MainApp(tk.Tk):
         self.title("人物名鑑アプリ")
         self.geometry("600x500")
 
-        # 画面を格納するコンテナ
+        # コンテナを grid に
         container = tk.Frame(self)
-        container.pack(fill="both", expand=True)
+        container.grid(row=0, column=0, sticky="nsew")
 
-        self.frames = {}
+        # ウィンドウ全体を grid で伸ばす
+        self.rowconfigure(0, weight=1)
+        self.columnconfigure(0, weight=1)
 
-        # 各画面を生成して辞書に登録
-        for F in (MenuFrame, RegisterFrame, SearchFrame, DetailFrame):
-            page_name = F.__name__
-            frame = F(container, self)
-            self.frames[page_name] = frame
-            frame.grid(row=0, column=0, sticky="nsew")
+        # MenuFrame を生成
+        menu = MenuFrame(container, self)
+        menu.grid(row=0, column=0)  # コンテナの中央に置く
 
-        # 最初の画面を表示
-        self.show_frame("MenuFrame")
-
-    def show_frame(self, page_name):
-        '''画面を切り替える'''
-        frame = self.frames[page_name]
-        frame.tkraise()
-
+        # コンテナの行・列を中央に揃えるため余白
+        container.rowconfigure(0, weight=1)
+        container.columnconfigure(0, weight=1)
 
 if __name__ == "__main__":
-    init_db()
     app = MainApp()
     app.mainloop()
