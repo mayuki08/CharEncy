@@ -19,8 +19,8 @@ class ListFrame(tk.Frame):
         tk.Button(search_frame, text="検索", command=self.search).pack(side=tk.LEFT, padx=5)
         tk.Button(search_frame, text="全件表示", command=self.refresh_list).pack(side=tk.LEFT)
 
-        self.tree = ttk.Treeview(self, columns=("ID", "名前", "職業", "出会った日"), show="headings")
-        for col in ("ID", "名前", "職業", "出会った日"):
+        self.tree = ttk.Treeview(self, columns=("ID", "名前", "ふりがな", "職業"), show="headings")
+        for col in ("ID", "名前", "ふりがな", "職業"):
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center")
         self.tree.pack(pady=10, fill=tk.BOTH, expand=True)
@@ -32,61 +32,6 @@ class ListFrame(tk.Frame):
         tk.Button(button_frame, text="← メニューに戻る", command=lambda: controller.show_frame("MenuFrame")).pack(side=tk.LEFT)
 
         self.refresh_list()
-
-    def refresh_list(self):
-        self.tree.delete(*self.tree.get_children())
-
-        people = get_all_people()
-        people = sorted(people, key=lambda x: x[1])  # 名前でソート
-
-        kana_groups = {
-            "あ行": "あいうえお",
-            "か行": "かがきぎくぐけげこご",
-            "さ行": "さざしじすずせぜそぞ",
-            "た行": "ただちぢつづてでとど",
-            "な行": "なにぬねの",
-            "は行": "はばぱひびぴふぶぷへべぺほぼぽ",
-            "ま行": "まみむめも",
-            "や行": "やゆよ",
-            "ら行": "らりるれろ",
-            "わ行": "わをん"
-        }
-
-        # 各行に分類
-        grouped = {k: [] for k in kana_groups}
-        others = []
-
-        for person in people:
-            name = person[1]
-            if not name:
-                others.append(person)
-                continue
-
-            first = name[0]
-            found = False
-            for group, chars in kana_groups.items():
-                if first in chars:
-                    grouped[group].append(person)
-                    found = True
-                    break
-            if not found:
-                others.append(person)
-
-        # ツリーに挿入
-        for group, persons in grouped.items():
-            if not persons:
-                continue
-            self.tree.insert('', 'end', values=(f"--- {group} ---", "", "", ""), tags=("group",))
-            for p in persons:
-                self.tree.insert('', 'end', values=p)
-
-        if others:
-            self.tree.insert('', 'end', values=("--- その他 ---", "", "", ""), tags=("group",))
-            for p in others:
-                self.tree.insert('', 'end', values=p)
-
-        # グループ行のスタイル設定
-        self.tree.tag_configure("group", background="#f0f0f0", font=("Arial", 10, "bold"))
 
     def show_detail(self):
         selected = self.tree.selection()
@@ -119,7 +64,7 @@ class ListFrame(tk.Frame):
 
     def display_grouped(self, people):
         self.tree.delete(*self.tree.get_children())
-        people = sorted(people, key=lambda x: x[1])  # 名前でソート
+        people = sorted(people, key=lambda x: x[2])  # ふりがなでソート
 
         kana_groups = {
             "あ行": "あいうえお",
@@ -138,12 +83,12 @@ class ListFrame(tk.Frame):
         others = []
 
         for person in people:
-            name = person[1]
-            if not name:
+            furigana = person[2]
+            if not furigana:
                 others.append(person)
                 continue
 
-            first = name[0]
+            first = furigana[0]
             found = False
             for group, chars in kana_groups.items():
                 if first in chars:

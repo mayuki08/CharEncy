@@ -52,6 +52,10 @@ class RegisterFrame(tk.Frame):
         if not name:
             messagebox.showwarning("入力エラー", "名前は必須です。")
             return
+        if not furigana:
+            messagebox.showwarning("入力エラー", "ふりがなは必須です。")
+            return
+
 
         add_person(name, furigana, job, date, memo)
 
