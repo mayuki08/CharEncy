@@ -8,6 +8,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS people (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             name TEXT NOT NULL,
+            furigana TEXT,
             job TEXT,
             met_date TEXT,
             memo TEXT
@@ -16,11 +17,11 @@ def init_db():
     conn.commit()
     conn.close()
 
-def add_person(name, job, met_date, memo):
+def add_person(name, furigana, job, met_date, memo):
     conn = sqlite3.connect('people.db')
     c = conn.cursor()
-    c.execute('INSERT INTO people (name, job, met_date, memo) VALUES (?, ?, ?, ?)', 
-              (name, job, met_date, memo))
+    c.execute('INSERT INTO people (name, furigana, job, met_date, memo) VALUES (?, ?, ?, ?, ?)',
+              (name, furigana, job, met_date, memo))
     conn.commit()
     conn.close()
 

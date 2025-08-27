@@ -11,4 +11,6 @@ class MenuFrame(tk.Frame):
                   command=lambda: controller.show_frame("RegisterFrame")).pack(pady=10)
         tk.Button(self, text="人物検索", width=20,
                   command=lambda: controller.show_frame("SearchFrame")).pack(pady=10)
+        tk.Button(self, text="人物一覧", width=20,
+                  command=lambda: controller.show_frame("ListFrame")).pack(pady=10)
         tk.Button(self, text="終了", width=20, command=controller.quit).pack(pady=10)

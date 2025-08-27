@@ -1,3 +1,4 @@
+import sqlite3
 # frames/detail.py
 import tkinter as tk
 from tkinter import messagebox
@@ -20,7 +21,7 @@ class DetailFrame(tk.Frame):
         self.memo_var = tk.StringVar()
 
         tk.Label(form, text="名前").grid(row=0, column=0)
-        tk.Entry(form, textvariable=self.name_var).grid(row=0, column=1)
+        tk.Label(form, textvariable=self.name_var).grid(row=0, column=1)
 
         tk.Label(form, text="職業/肩書き").grid(row=1, column=0)
         tk.Entry(form, textvariable=self.job_var).grid(row=1, column=1)
@@ -28,3 +29,27 @@ class DetailFrame(tk.Frame):
         tk.Label(form, text="出会った日").grid(row=2, column=0)
         tk.Entry(form, textvariable=self.date_var).grid(row=2, column=1)
 
+        tk.Label(form, text="備考").grid(row=2, column=0)
+        tk.Entry(form, textvariable=self.memo_var).grid(row=2, column=1)
+
+        tk.Button(self, text="検索", width=20,
+                  command=lambda: controller.show_frame("SearchFrame")).pack(pady=10)
+
+    def set_person_id(self, person_id):
+        """人物IDをセットし、その人物の詳細を表示"""
+        self.person_id = person_id
+        person = get_person_by_id(person_id)
+
+        if person:
+            # person = (id, name, job, met_date, memo)
+            self.name_var.set(person[1] or "")
+            self.job_var.set(person[2] or "")
+            self.date_var.set(person[3] or "")
+            self.memo_var.set(person[4] or "")
+        else:
+            # 取得失敗時
+            self.name_var.set("")
+            self.job_var.set("")
+            self.date_var.set("")
+            self.memo_var.set("")
+            tk.messagebox.showerror("エラー", "人物情報の取得に失敗しました。")
