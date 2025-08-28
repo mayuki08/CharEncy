@@ -43,8 +43,8 @@ class MenuFrame(tk.Frame):
         register_btn.bind("<Enter>", on_enter)
         register_btn.bind("<Leave>", on_leave)
         
-        search_btn = tk.Button(self.center_frame, text="人物検索", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
-                  command=lambda: self.controller.show_frame("SearchFrame"),relief="raised",bd=4)
+        search_btn = tk.Button(self.center_frame, text="人物一覧", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+                  command=lambda: self.controller.show_frame("ListFrame"),relief="raised",bd=4)
         
         search_btn.pack(pady=10)
         search_btn.bind("<Enter>", on_enter)

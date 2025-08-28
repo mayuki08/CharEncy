@@ -6,6 +6,7 @@ from frames.menu import MenuFrame
 from frames.register import RegisterFrame
 from frames.search import SearchFrame
 from frames.detail import DetailFrame
+from frames.list import ListFrame
 
 class MainApp(tk.Tk):
     def __init__(self):
@@ -16,11 +17,13 @@ class MainApp(tk.Tk):
         # 画面を格納するコンテナ
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
+        container.rowconfigure(0, weight=1)
+        container.columnconfigure(0, weight=1)
 
         self.frames = {}
 
         # 各画面を生成して辞書に登録
-        for F in (MenuFrame, RegisterFrame, SearchFrame, DetailFrame):
+        for F in (MenuFrame, RegisterFrame, SearchFrame, DetailFrame,ListFrame):
             page_name = F.__name__
             frame = F(container, self)
             self.frames[page_name] = frame
@@ -39,3 +42,4 @@ if __name__ == "__main__":
     init_db()
     app = MainApp()
     app.mainloop()
+
