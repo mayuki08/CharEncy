@@ -17,6 +17,8 @@ class MainApp(tk.Tk):
         # 画面を格納するコンテナ
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
+        container.rowconfigure(0, weight=1)
+        container.columnconfigure(0, weight=1)
 
         self.frames = {}
 
@@ -40,3 +42,4 @@ if __name__ == "__main__":
     init_db()
     app = MainApp()
     app.mainloop()
+

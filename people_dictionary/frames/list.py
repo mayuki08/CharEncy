@@ -33,6 +33,7 @@ class ListFrame(tk.Frame):
 
         self.refresh_list()
 
+
     def show_detail(self):
         selected = self.tree.selection()
         if not selected:
