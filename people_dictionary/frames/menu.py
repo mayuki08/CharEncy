@@ -36,19 +36,33 @@ class MenuFrame(tk.Frame):
             e.widget['background'] = '#2e8b57'
             
         # ボタン（横中央）
-        register_btn = tk.Button(self.center_frame, text="人物登録", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
-                  command=lambda: self.controller.show_frame("RegisterFrame"),relief="raised",bd=4)
+        pregister_btn = tk.Button(self.center_frame, text="人物登録", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+                  command=lambda: self.controller.show_frame("PeopleRegisterFrame"),relief="raised",bd=4)
         
-        register_btn.pack(pady=10)
-        register_btn.bind("<Enter>", on_enter)
-        register_btn.bind("<Leave>", on_leave)
+        pregister_btn.pack(pady=10)
+        pregister_btn.bind("<Enter>", on_enter)
+        pregister_btn.bind("<Leave>", on_leave)
         
-        search_btn = tk.Button(self.center_frame, text="人物一覧", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
-                  command=lambda: self.controller.show_frame("ListFrame"),relief="raised",bd=4)
+        plist_btn = tk.Button(self.center_frame, text="人物一覧", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+                  command=lambda: self.controller.show_frame("PeopleListFrame"),relief="raised",bd=4)
         
-        search_btn.pack(pady=10)
-        search_btn.bind("<Enter>", on_enter)
-        search_btn.bind("<Leave>", on_leave)
+        plist_btn.pack(pady=10)
+        plist_btn.bind("<Enter>", on_enter)
+        plist_btn.bind("<Leave>", on_leave)
+
+        tregister_btn = tk.Button(self.center_frame, text="タスク登録", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+                  command=lambda: self.controller.show_frame("TaskRegisterFrame"),relief="raised",bd=4)
+        
+        tregister_btn.pack(pady=10)
+        tregister_btn.bind("<Enter>", on_enter)
+        tregister_btn.bind("<Leave>", on_leave)
+
+        tlist_btn = tk.Button(self.center_frame, text="タスク一覧", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+                command=lambda: self.controller.show_frame("TaskListFrame"),relief="raised",bd=4)
+
+        tlist_btn.pack(pady=10)
+        tlist_btn.bind("<Enter>", on_enter)
+        tlist_btn.bind("<Leave>", on_leave)
         
         # 終了用関数
         def on_enter(e):
