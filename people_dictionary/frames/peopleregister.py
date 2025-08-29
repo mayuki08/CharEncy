@@ -1,10 +1,10 @@
 # frames/register.py
 import tkinter as tk
-from tkinter import messagebox, font
+from tkinter import messagebox, font, ttk
 from database import add_person
 import pykakasi
 
-class RegisterFrame(tk.Frame):
+class PeopleRegisterFrame(tk.Frame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
@@ -15,6 +15,7 @@ class RegisterFrame(tk.Frame):
         self.name_var = tk.StringVar()
         self.furigana_var = tk.StringVar()
         self.job_var = tk.StringVar()
+        self.group_var = tk.StringVar()  # ← 追加
         self.year_var = tk.StringVar()
         self.month_var = tk.StringVar()
         self.day_var = tk.StringVar()
@@ -36,22 +37,29 @@ class RegisterFrame(tk.Frame):
         form.pack(pady=5)
 
         # 名前とふりがな
-        tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=0, column=0, pady=10)
+        tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=0, column=0, pady=10, sticky="e")
         name_entry = tk.Entry(form, textvariable=self.name_var, font=entry_font)
         name_entry.grid(row=0, column=1, pady=10)
         name_entry.bind("<FocusOut>", self.auto_fill_furigana)
 
-        tk.Label(form, text="ふりがな *", font=entry_font, fg="red").grid(row=1, column=0, pady=10)
+        tk.Label(form, text="ふりがな *", font=entry_font, fg="red").grid(row=1, column=0, pady=10, sticky="e")
         tk.Entry(form, textvariable=self.furigana_var, font=entry_font).grid(row=1, column=1, pady=10)
 
         # 職業
-        tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=2, column=0, pady=10)
+        tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=2, column=0, pady=10, sticky="e")
         tk.Entry(form, textvariable=self.job_var, font=entry_font).grid(row=2, column=1, pady=10)
 
+        # グループ（Comboboxに変更）
+        tk.Label(form, text="グループ", font=entry_font).grid(row=3, column=0, pady=10, sticky="e")
+
+        group_options = ["家族", "友人", "仕事", "学校", "趣味"]
+        self.group_combobox = ttk.Combobox(form, textvariable=self.group_var, values=group_options, font=entry_font, state="normal")
+        self.group_combobox.grid(row=3, column=1, pady=10)
+
         # 出会った日（年・月・日）
-        tk.Label(form, text="出会った日", font=entry_font).grid(row=3, column=0, pady=10)
+        tk.Label(form, text="出会った日", font=entry_font).grid(row=4, column=0, pady=10, sticky="e")
         date_frame = tk.Frame(form)
-        date_frame.grid(row=3, column=1, pady=10)
+        date_frame.grid(row=4, column=1, pady=10)
 
         tk.Entry(date_frame, textvariable=self.year_var, width=6, font=entry_font).pack(side=tk.LEFT)
         tk.Label(date_frame, text="年", font=entry_font).pack(side=tk.LEFT, padx=(2, 5))
@@ -63,9 +71,9 @@ class RegisterFrame(tk.Frame):
         tk.Label(date_frame, text="日", font=entry_font).pack(side=tk.LEFT)
 
         # メモ欄
-        tk.Label(form, text="メモ", font=entry_font).grid(row=4, column=0, pady=10)
+        tk.Label(form, text="メモ", font=entry_font).grid(row=5, column=0, pady=10, sticky="ne")
         self.memo_text = tk.Text(form, width=32, height=5, font=("Arial", 12))
-        self.memo_text.grid(row=4, column=1, padx=10, pady=10)
+        self.memo_text.grid(row=5, column=1, padx=10, pady=10)
 
         # ホバーエフェクト
         def on_enter(e): e.widget['background'] = '#F1F1F1'
@@ -97,6 +105,7 @@ class RegisterFrame(tk.Frame):
     def add_person_gui(self):
         name = self.name_var.get()
         furigana = self.furigana_var.get()
+        group = self.group_var.get()
         job = self.job_var.get()
         year = self.year_var.get()
         month = self.month_var.get().zfill(2)
@@ -111,12 +120,14 @@ class RegisterFrame(tk.Frame):
             messagebox.showwarning("入力エラー", "ふりがなは必須です。")
             return
 
-        add_person(name, furigana, job, date, memo)
+        # グループも渡す（add_personに対応している前提）
+        add_person(name, furigana, group, job, date, memo)
 
         # フィールドクリア
         self.name_var.set("")
         self.furigana_var.set("")
         self.job_var.set("")
+        self.group_var.set("")
         self.year_var.set("")
         self.month_var.set("")
         self.day_var.set("")
@@ -125,5 +136,6 @@ class RegisterFrame(tk.Frame):
         messagebox.showinfo("登録成功", "人物情報を登録しました。")
 
         # ListFrameの更新
-        if "ListFrame" in self.controller.frames:
-            self.controller.frames["ListFrame"].refresh_list()
+        if "PeopleListFrame" in self.controller.frames:
+            self.controller.frames["PeopleListFrame"].refresh_list()
+

@@ -1,20 +1,26 @@
-# app.py
-
 import tkinter as tk
-from database import init_db
+from database import init_parson_db, init_task_db
+
 from frames.menu import MenuFrame
-from frames.register import RegisterFrame
-from frames.search import SearchFrame
-from frames.detail import DetailFrame
-from frames.list import ListFrame
+
+# People関連のフレーム
+from frames.peopleregister import PeopleRegisterFrame
+from frames.peopledetail import PeopleDetailFrame
+from frames.peopleedit import PeopleEditFrame
+from frames.peoplelist import PeopleListFrame
+
+# Task関連のフレーム（新しく追加する）
+from frames.tasklist import TaskListFrame
+from frames.taskregister import TaskRegisterFrame
+from frames.taskdetail import TaskDetailFrame
+from frames.taskedit import TaskEditFrame
 
 class MainApp(tk.Tk):
     def __init__(self):
         super().__init__()
         self.title("人物名鑑アプリ")
-        self.geometry("600x500")
+        self.geometry("600x700")
 
-        # 画面を格納するコンテナ
         container = tk.Frame(self)
         container.pack(fill="both", expand=True)
         container.rowconfigure(0, weight=1)
@@ -22,14 +28,27 @@ class MainApp(tk.Tk):
 
         self.frames = {}
 
-        # 各画面を生成して辞書に登録
-        for F in (MenuFrame, RegisterFrame, SearchFrame, DetailFrame,ListFrame):
+        # 各画面（Frame）を登録
+        for F in (
+            MenuFrame,
+
+            # People関連
+            PeopleRegisterFrame,
+            PeopleDetailFrame,
+            PeopleEditFrame,
+            PeopleListFrame,
+
+            # Task関連 ← ここに追加！
+            TaskListFrame,
+            TaskRegisterFrame,
+            TaskDetailFrame,
+            TaskEditFrame
+        ):
             page_name = F.__name__
             frame = F(container, self)
             self.frames[page_name] = frame
             frame.grid(row=0, column=0, sticky="nsew")
 
-        # 最初の画面を表示
         self.show_frame("MenuFrame")
 
     def show_frame(self, page_name):
@@ -39,7 +58,8 @@ class MainApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    init_db()
+    init_parson_db()
+    init_task_db()
     app = MainApp()
     app.mainloop()
 

@@ -1,9 +1,8 @@
-# frames/list.py
 import tkinter as tk
 from tkinter import ttk, messagebox
 from database import get_all_people, search_people
 
-class ListFrame(tk.Frame):
+class PeopleListFrame(tk.Frame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
@@ -19,8 +18,8 @@ class ListFrame(tk.Frame):
         tk.Button(search_frame, text="検索", command=self.search).pack(side=tk.LEFT, padx=5)
         tk.Button(search_frame, text="全件表示", command=self.refresh_list).pack(side=tk.LEFT)
 
-        self.tree = ttk.Treeview(self, columns=("ID", "名前", "ふりがな", "職業"), show="headings")
-        for col in ("ID", "名前", "ふりがな", "職業"):
+        self.tree = ttk.Treeview(self, columns=("ID", "名前", "ふりがな", "グループ", "職業"), show="headings")
+        for col in ("ID", "名前", "ふりがな", "グループ", "職業"):
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center")
         self.tree.pack(pady=10, fill=tk.BOTH, expand=True)
@@ -32,7 +31,6 @@ class ListFrame(tk.Frame):
         tk.Button(button_frame, text="← メニューに戻る", command=lambda: controller.show_frame("MenuFrame")).pack(side=tk.LEFT)
 
         self.refresh_list()
-
 
     def show_detail(self):
         selected = self.tree.selection()
@@ -48,8 +46,9 @@ class ListFrame(tk.Frame):
             return
 
         person_id = values[0]
-        self.controller.frames["DetailFrame"].set_person_id(person_id)
-        self.controller.show_frame("DetailFrame")
+        self.controller.frames["PeopleDetailFrame"].set_person_id(person_id)
+        self.controller.show_frame("PeopleDetailFrame")
+
     def search(self):
         keyword = self.search_var.get()
         if not keyword:
@@ -58,7 +57,7 @@ class ListFrame(tk.Frame):
 
         people = search_people(keyword)
         self.display_grouped(people)
-    
+
     def refresh_list(self):
         people = get_all_people()
         self.display_grouped(people)
@@ -102,13 +101,13 @@ class ListFrame(tk.Frame):
         for group, persons in grouped.items():
             if not persons:
                 continue
-            self.tree.insert('', 'end', values=(f"--- {group} ---", "", "", ""), tags=("group",))
+            self.tree.insert('', 'end', values=(f"--- {group} ---", "", "", "", ""), tags=("group",))
             for p in persons:
-                self.tree.insert('', 'end', values=p)
+                self.tree.insert('', 'end', values=(p[0], p[1], p[2], p[3], p[4]))
 
         if others:
-            self.tree.insert('', 'end', values=("--- その他 ---", "", "", ""), tags=("group",))
+            self.tree.insert('', 'end', values=("--- その他 ---", "", "", "", ""), tags=("group",))
             for p in others:
-                self.tree.insert('', 'end', values=p)
+                self.tree.insert('', 'end', values=(p[0], p[1], p[2], p[3], p[4]))
 
         self.tree.tag_configure("group", background="#f0f0f0", font=("Arial", 10, "bold"))
