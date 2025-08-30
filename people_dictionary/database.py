@@ -1,6 +1,6 @@
 import sqlite3
 
-def init_parson_db():
+def init_person_db():
     conn = sqlite3.connect('people.db')
     c = conn.cursor()
     c.execute('''
