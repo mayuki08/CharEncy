@@ -33,7 +33,7 @@ class PeopleDetailFrame(tk.Frame):
 
         # --- 名前（表示専用） ---
         tk.Label(form, text="名前", font=entry_font).grid(row=0, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.name_var, font=entry_font, width=30, state="readonly").grid(row=1, column=1, pady=5)
+        tk.Entry(form, textvariable=self.name_var, font=entry_font, width=30, state="readonly").grid(row=0, column=1, pady=5)
 
         # --- ふりがな（readonly） ---
         tk.Label(form, text="ふりがな", font=entry_font).grid(row=1, column=0, sticky="e")
