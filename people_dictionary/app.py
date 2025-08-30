@@ -1,5 +1,5 @@
 import tkinter as tk
-from database import init_parson_db, init_task_db
+from database import init_person_db, init_task_db
 
 from frames.menu import MenuFrame
 
@@ -58,7 +58,7 @@ class MainApp(tk.Tk):
 
 
 if __name__ == "__main__":
-    init_parson_db()
+    init_person_db()
     init_task_db()
     app = MainApp()
     app.mainloop()
