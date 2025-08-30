@@ -1,3 +1,4 @@
+#frames/task_detail.py
 import tkinter as tk
 from tkinter import messagebox, font
 from database import get_task_by_id, delete_task

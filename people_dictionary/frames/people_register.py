@@ -1,13 +1,21 @@
-# frames/register.py
+# frames/people_register.py
 import tkinter as tk
-from tkinter import messagebox, font, ttk
+from tkinter import messagebox, font, filedialog,ttk
 from database import add_person
 import pykakasi
+import os, shutil
+from settings import load_custom_labels
+from frames.customfieldsetting import load_custom_field_settings
+
+IMAGE_DIR = "images"
 
 class PeopleRegisterFrame(tk.Frame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
+
+        if not os.path.exists(IMAGE_DIR):
+            os.makedirs(IMAGE_DIR)   # フォルダがなければ作成
 
         self.kks = pykakasi.kakasi()
 
@@ -19,6 +27,7 @@ class PeopleRegisterFrame(tk.Frame):
         self.year_var = tk.StringVar()
         self.month_var = tk.StringVar()
         self.day_var = tk.StringVar()
+        self.image_path_var = tk.StringVar()
 
         # 中央寄せ用フレーム
         center_frame = tk.Frame(self)
@@ -36,45 +45,54 @@ class PeopleRegisterFrame(tk.Frame):
         form = tk.Frame(center_frame)
         form.pack(pady=5)
 
-        # 名前とふりがな
-        tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=0, column=0, pady=10, sticky="e")
+        # 画像選択ボタン（新規追加）
+        tk.Button(form, text="画像選択", command=self.select_profile_image, font=entry_font).grid(row=0, column=1, pady=10, sticky="w")
+
+        # 名前とふりがな（row を +1 ずらす）
+        tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=1, column=0, pady=10, sticky="e")
         name_entry = tk.Entry(form, textvariable=self.name_var, font=entry_font)
-        name_entry.grid(row=0, column=1, pady=10)
+        name_entry.grid(row=1, column=1, pady=10)
         name_entry.bind("<FocusOut>", self.auto_fill_furigana)
 
-        tk.Label(form, text="ふりがな *", font=entry_font, fg="red").grid(row=1, column=0, pady=10, sticky="e")
-        tk.Entry(form, textvariable=self.furigana_var, font=entry_font).grid(row=1, column=1, pady=10)
+        tk.Label(form, text="ふりがな *", font=entry_font, fg="red").grid(row=2, column=0, pady=10, sticky="e")
+        tk.Entry(form, textvariable=self.furigana_var, font=entry_font).grid(row=2, column=1, pady=10)
 
         # 職業
-        tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=2, column=0, pady=10, sticky="e")
-        tk.Entry(form, textvariable=self.job_var, font=entry_font).grid(row=2, column=1, pady=10)
+        tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=3, column=0, pady=10, sticky="e")
+        tk.Entry(form, textvariable=self.job_var, font=entry_font).grid(row=3, column=1, pady=10)
 
-        # グループ（Comboboxに変更）
-        tk.Label(form, text="グループ", font=entry_font).grid(row=3, column=0, pady=10, sticky="e")
-
+        # グループ
+        tk.Label(form, text="グループ", font=entry_font).grid(row=4, column=0, pady=10, sticky="e")
         group_options = ["家族", "友人", "仕事", "学校", "趣味"]
-        self.group_combobox = ttk.Combobox(form, textvariable=self.group_var, values=group_options, font=entry_font, state="normal")
-        self.group_combobox.grid(row=3, column=1, pady=10)
+        self.group_combobox = ttk.Combobox(form, textvariable=self.group_var, values=group_options, font=entry_font, width=29, state="normal")
+        self.group_combobox.grid(row=4, column=1, pady=10)
 
-        # 出会った日（年・月・日）
-        tk.Label(form, text="出会った日", font=entry_font).grid(row=4, column=0, pady=10, sticky="e")
+        # 出会った日
+        tk.Label(form, text="出会った日", font=entry_font).grid(row=5, column=0, pady=10, sticky="e")
         date_frame = tk.Frame(form)
-        date_frame.grid(row=4, column=1, pady=10)
+        date_frame.grid(row=5, column=1, pady=10)
 
         tk.Entry(date_frame, textvariable=self.year_var, width=6, font=entry_font).pack(side=tk.LEFT)
         tk.Label(date_frame, text="年", font=entry_font).pack(side=tk.LEFT, padx=(2, 5))
-
         tk.Entry(date_frame, textvariable=self.month_var, width=4, font=entry_font).pack(side=tk.LEFT)
         tk.Label(date_frame, text="月", font=entry_font).pack(side=tk.LEFT, padx=(2, 5))
-
         tk.Entry(date_frame, textvariable=self.day_var, width=4, font=entry_font).pack(side=tk.LEFT)
         tk.Label(date_frame, text="日", font=entry_font).pack(side=tk.LEFT)
 
-        # メモ欄
-        tk.Label(form, text="メモ", font=entry_font).grid(row=5, column=0, pady=10, sticky="ne")
+        # メモ
+        tk.Label(form, text="メモ", font=entry_font).grid(row=6, column=0, pady=10, sticky="ne")
         self.memo_text = tk.Text(form, width=32, height=5, font=("Arial", 12))
-        self.memo_text.grid(row=5, column=1, padx=10, pady=10)
+        self.memo_text.grid(row=6, column=1, padx=10, pady=10)
 
+        #カスタム項目
+        self.custom_labeltitles = load_custom_field_settings()["people"]
+        self.custom_labels = []
+        self.custom_vars = [tk.StringVar() for i in range(10)]
+        for i in range(10):
+            self.custom_labels.append(tk.Label(form, text=self.custom_labeltitles[i], font=entry_font))
+            self.custom_labels[i].grid(row=7+i, column=0, pady=10, sticky="e")
+            tk.Entry(form, textvariable=self.custom_vars[i], font=entry_font).grid(row=7+i, column=1, pady=10)
+            
         # ホバーエフェクト
         def on_enter(e): e.widget['background'] = '#F1F1F1'
         def on_leave(e): e.widget['background'] = '#EEEEEE'
@@ -112,6 +130,10 @@ class PeopleRegisterFrame(tk.Frame):
         day = self.day_var.get().zfill(2)
         date = f"{year}-{month}-{day}" if year and month and day else ""
         memo = self.memo_text.get("1.0", "end-1c")
+        image_path = self.image_path_var.get()
+        custom = []
+        for i in range(10):
+            custom.append(self.custom_vars[i].get())
 
         if not name:
             messagebox.showwarning("入力エラー", "名前は必須です。")
@@ -121,7 +143,7 @@ class PeopleRegisterFrame(tk.Frame):
             return
 
         # グループも渡す（add_personに対応している前提）
-        add_person(name, furigana, group, job, date, memo)
+        add_person(name, furigana, group, job, date, memo, image_path, *custom)
 
         # フィールドクリア
         self.name_var.set("")
@@ -131,11 +153,34 @@ class PeopleRegisterFrame(tk.Frame):
         self.year_var.set("")
         self.month_var.set("")
         self.day_var.set("")
+        for i in range(10):
+            self.custom_vars[i].set("")
         self.memo_text.delete("1.0", "end")
+        self.image_path_var.set("")
 
         messagebox.showinfo("登録成功", "人物情報を登録しました。")
 
         # ListFrameの更新
         if "PeopleListFrame" in self.controller.frames:
             self.controller.frames["PeopleListFrame"].refresh_list()
+    def select_profile_image(self):
+        filepath = filedialog.askopenfilename(filetypes=[("画像ファイル", "*.png;*.jpg;*.jpeg")])
+        if filepath:
+            if not os.path.exists(IMAGE_DIR):
+                os.makedirs(IMAGE_DIR)
 
+            filename = os.path.basename(filepath)
+            dest_path = os.path.join(IMAGE_DIR, filename)
+
+            try:
+                shutil.copy(filepath, dest_path)
+                self.image_path_var.set(dest_path)
+                messagebox.showinfo("画像選択", f"画像をコピーして保存しました: {dest_path}")
+            except Exception as e:
+                messagebox.showerror("エラー", f"画像コピー失敗: {e}")
+
+            
+    def refresh_labels(self):
+        new_labels = load_custom_field_settings()["people"]
+        for i in range(10):
+            self.custom_labels[i]["text"] = new_labels[i]

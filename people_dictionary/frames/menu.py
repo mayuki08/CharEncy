@@ -1,3 +1,4 @@
+#frames/menu.py
 import tkinter as tk
 from tkinter import font
 from tkinter import ttk
@@ -64,6 +65,13 @@ class MenuFrame(tk.Frame):
         tlist_btn.bind("<Enter>", on_enter)
         tlist_btn.bind("<Leave>", on_leave)
         
+        setting_btn = tk.Button(self.center_frame, text="カスタム項目設定", bg="#2e8b57", fg="white", activebackground="#3cb371", width=20, font=button_font,
+        command=lambda: self.controller.show_frame("CustomFieldSettingFrame"),relief="raised",bd=4)
+
+        setting_btn.pack(pady=10)
+        setting_btn.bind("<Enter>", on_enter)
+        setting_btn.bind("<Leave>", on_leave)
+
         # 終了用関数
         def on_enter(e):
             e.widget['background'] = '#F1F1F1'
