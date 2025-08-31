@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import messagebox, font
-
 from database import get_task_by_id, delete_task
 
 class TaskDetailFrame(tk.Frame):
@@ -13,29 +12,15 @@ class TaskDetailFrame(tk.Frame):
         title_font = font.Font(family="Arial", size=30, weight="bold")
         entry_font = font.Font(family="Arial", size=15)
 
-        # --- スクロール対応用キャンバスとフレーム ---
-        canvas = tk.Canvas(self)
-        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
-        scroll_frame = tk.Frame(canvas)
-
-        scroll_frame.bind(
-            "<Configure>",
-            lambda e: canvas.configure(
-                scrollregion=canvas.bbox("all")
-            )
-        )
-
-        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
-        canvas.configure(yscrollcommand=scrollbar.set)
-
-        canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
+        # --- 中央揃え用フレーム ---
+        center_frame = tk.Frame(self)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
 
         # --- タイトル ---
-        tk.Label(scroll_frame, text="タスク詳細", font=title_font).pack(pady=20)
-        tk.Frame(scroll_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
+        tk.Label(center_frame, text="タスク詳細", font=title_font).pack(pady=20)
+        tk.Frame(center_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
 
-        form = tk.Frame(scroll_frame)
+        form = tk.Frame(center_frame)
         form.pack(pady=10)
 
         # --- 変数定義 ---
@@ -47,7 +32,6 @@ class TaskDetailFrame(tk.Frame):
         self.custom_vars = [tk.StringVar() for _ in range(10)]
 
         # --- フォーム項目 ---
-        # 標準項目
         labels = ["タスク", "場所", "時間", "相手", "備考"]
         vars_ = [self.task_var, self.location_var, self.time_var, self.partner_var, None]
 
@@ -73,19 +57,19 @@ class TaskDetailFrame(tk.Frame):
         button_style = {"font": entry_font, "width": 20, "relief": "raised", "bd": 4, "bg": "#EEEEEE"}
 
         # --- 編集ボタン ---
-        edit_btn = tk.Button(scroll_frame, text="← 編集", command=self.go_to_edit_frame, **button_style)
+        edit_btn = tk.Button(center_frame, text="← 編集", command=self.go_to_edit_frame, **button_style)
         edit_btn.pack(pady=5)
         edit_btn.bind("<Enter>", on_enter)
         edit_btn.bind("<Leave>", on_leave)
 
         # --- 削除ボタン ---
-        delete_btn = tk.Button(scroll_frame, text="削除", command=self.delete_task_confirm, **button_style)
+        delete_btn = tk.Button(center_frame, text="削除", command=self.delete_task_confirm, **button_style)
         delete_btn.pack(pady=5)
         delete_btn.bind("<Enter>", on_enter)
         delete_btn.bind("<Leave>", on_leave)
 
         # --- 戻るボタン ---
-        back_btn = tk.Button(scroll_frame, text="← 一覧に戻る",
+        back_btn = tk.Button(center_frame, text="← 一覧に戻る",
                              command=lambda: controller.show_frame("TaskListFrame"), **button_style)
         back_btn.pack(pady=10)
         back_btn.bind("<Enter>", on_enter)

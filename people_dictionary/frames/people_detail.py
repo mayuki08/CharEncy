@@ -147,7 +147,7 @@ class PeopleDetailFrame(tk.Frame):
                     self.image_label.config(image="", text="画像読み込み失敗")
                     self.profile_image_tk = None
             else:
-                self.image_label.config(image="", text="画像なし")
+                self.image_label.config(image="", text="画像なし", font=("Arial", 12), width=10, height=2, anchor="center")
                 self.profile_image_tk = None
 
         else:

@@ -180,6 +180,9 @@ class PeopleRegisterFrame(tk.Frame):
 
         messagebox.showinfo("追加完了", "人物を追加しました。")
 
+        # 一覧画面に切り替え＆最新データ読み込み
+        self.controller.frames["PeopleListFrame"].refresh_list()
+
     def select_profile_image(self):
         file_path = filedialog.askopenfilename(filetypes=[("画像ファイル", "*.jpg *.jpeg *.png *.gif")])
         if file_path:

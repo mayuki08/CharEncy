@@ -2,16 +2,16 @@
     "pnormalcontrol": [
         true,
         true,
-        false,
+        true,
         false,
         true
     ],
     "pcustomcontrol": [
-        false,
-        false,
-        false,
-        false,
-        false,
+        true,
+        true,
+        true,
+        true,
+        true,
         false,
         false,
         false,
@@ -37,7 +37,7 @@
         false
     ],
     "person_custom_labels": [
-        "カスタム1",
+        "誕生美",
         "カスタム2",
         "カスタム3",
         "カスタム4",
