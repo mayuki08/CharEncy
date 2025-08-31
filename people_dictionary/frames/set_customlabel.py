@@ -1,4 +1,3 @@
-#frames/set_customlabel.py
 import tkinter as tk
 from tkinter import font, messagebox
 import json
@@ -12,8 +11,12 @@ def load_custom_field_settings():
             return json.load(f)
     else:
         return {
-            "people": [f"custom{i+1}" for i in range(10)],
-            "tasks": [f"custom{i+1}" for i in range(10)]
+            "person_custom_labels": [f"custom{i+1}" for i in range(10)],
+            "task_custom_labels": [f"custom{i+1}" for i in range(10)],
+            "pnormalcontrol": [True, True, True, True, True],
+            "pcustomcontrol": [False]*10,
+            "tnormalcontrol": [True, True, True, True],
+            "tcustomcontrol": [False]*10,
         }
 
 def save_custom_field_settings(data):
@@ -68,20 +71,27 @@ class CustomLabelFrame(tk.Frame):
 
     def load_settings(self):
         data = load_custom_field_settings()
-        for i, name in enumerate(data.get("people", [])):
+        for i, name in enumerate(data.get("person_custom_labels", [])):
             if i < 10:
                 self.people_fields_vars[i].set(name)
-        for i, name in enumerate(data.get("tasks", [])):
+        for i, name in enumerate(data.get("task_custom_labels", [])):
             if i < 10:
                 self.task_fields_vars[i].set(name)
 
     def save_settings(self):
-        data = {
-            "person_custom_labels": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.people_fields_vars)],
-            "task_custom_labels": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.task_fields_vars)],
-        }
+        data = load_custom_field_settings()  # 現状の全データを読み込み
+
+        # 更新する項目だけ差し替え
+        data["person_custom_labels"] = [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.people_fields_vars)]
+        data["task_custom_labels"] = [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.task_fields_vars)]
+
         save_custom_field_settings(data)
         messagebox.showinfo("保存完了", "カスタム項目名を保存しました。")
-        if "PeopleRegisterFrame" in self.controller.frames:
-            self.controller.frames["PeopleRegisterFrame"].refresh_labels()
-            self.controller.frames["PeopleEditFrame"].refresh_labels()
+
+        # 即時反映
+        main_app = getattr(self.controller, "main_app", None)
+        if main_app:
+            if "PeopleRegisterFrame" in main_app.frames:
+                main_app.frames["PeopleRegisterFrame"].refresh_fields()
+            if "PeopleEditFrame" in main_app.frames:
+                main_app.frames["PeopleEditFrame"].refresh_fields()

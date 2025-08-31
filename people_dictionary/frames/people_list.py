@@ -89,7 +89,6 @@ class PeopleListFrame(tk.Frame):
             img.thumbnail(size)
             return ImageTk.PhotoImage(img)
         except Exception:
-            print("error")
             return ImageTk.PhotoImage(Image.new("RGB", size, color="gray"))
 
     def refresh_list(self):

@@ -1,6 +1,6 @@
-# frames/task_register.py
 import tkinter as tk
 from tkinter import messagebox, font, ttk
+import sqlite3
 from database import add_task
 from settings import load_topicbool
 from frames.set_customlabel import load_custom_field_settings
@@ -19,6 +19,9 @@ class TaskRegisterFrame(tk.Frame):
         self.time_var = tk.StringVar()
         self.partner_var = tk.StringVar()
         self.custom_vars = [tk.StringVar() for _ in range(10)]
+
+        # people.db から名前リストとIDマップを読み込み
+        self.people_list, self.name_to_id = self.load_people()
 
         # 中央寄せ用フレーム
         center_frame = tk.Frame(self)
@@ -60,6 +63,26 @@ class TaskRegisterFrame(tk.Frame):
         back_btn.bind("<Enter>", on_enter)
         back_btn.bind("<Leave>", on_leave)
 
+    def load_people(self):
+        """
+        people.db から (id, name) を取得して
+        - 名前リスト
+        - 名前→IDの辞書
+        を返す
+        """
+        try:
+            conn = sqlite3.connect('people.db')
+            cursor = conn.cursor()
+            cursor.execute("SELECT id, name FROM people ORDER BY name")
+            rows = cursor.fetchall()
+            conn.close()
+            people_list = [row[1] for row in rows]
+            name_to_id = {row[1]: row[0] for row in rows}
+            return people_list, name_to_id
+        except Exception as e:
+            messagebox.showerror("DBエラー", f"people.db の読み込みに失敗しました。\n{e}")
+            return [], {}
+
     def refresh_fields(self):
         for widget in self.form_frame.winfo_children():
             widget.destroy()
@@ -67,8 +90,7 @@ class TaskRegisterFrame(tk.Frame):
         self.topic_control = load_topicbool()
         self.custom_labeltitles = load_custom_field_settings()["task_custom_labels"]
         entry_font = font.Font(family="Arial", size=15)
-        row = 0
-        print(["tnormalcontrol"])
+        row = 0 
 
         # タスク名（常に表示）
         tk.Label(self.form_frame, text="タスク *", font=entry_font, fg="red").grid(row=row, column=0, pady=10, sticky="e")
@@ -87,10 +109,12 @@ class TaskRegisterFrame(tk.Frame):
             tk.Entry(self.form_frame, textvariable=self.time_var, font=entry_font).grid(row=row, column=1, pady=10)
             row += 1
 
-        # 相手
+        # 相手（コンボボックスで people.db の名前リストから選択可能）
         if self.topic_control["tnormalcontrol"][2]:
             tk.Label(self.form_frame, text="相手", font=entry_font).grid(row=row, column=0, pady=10, sticky="e")
-            tk.Entry(self.form_frame, textvariable=self.partner_var, font=entry_font).grid(row=row, column=1, pady=10)
+            partner_combo = ttk.Combobox(self.form_frame, textvariable=self.partner_var, font=entry_font)
+            partner_combo['values'] = self.people_list
+            partner_combo.grid(row=row, column=1, pady=10)
             row += 1
 
         # メモ
@@ -127,7 +151,10 @@ class TaskRegisterFrame(tk.Frame):
             messagebox.showwarning("入力エラー", "タスク名は必須です。")
             return
 
-        add_task(task, location, time, partner, memo, *custom)
+        # partner名からpartner_idを取得（存在しなければNone）
+        partner_id = self.name_to_id.get(partner, None)
+
+        add_task(task, location, time, partner, partner_id, memo, *custom)
 
         # フィールドクリア
         self.task_var.set("")

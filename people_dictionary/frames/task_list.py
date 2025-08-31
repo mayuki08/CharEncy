@@ -1,8 +1,6 @@
-#frames/task_list.py
 import tkinter as tk
 from tkinter import ttk, messagebox
-from database import get_all_tasks, search_tasks  # 適宜ファイル名を合わせてください
-from database import get_person_by_id  # 人物情報取得用
+from database import get_all_tasks, search_tasks, get_person_by_id  # まとめてimport
 
 class TaskListFrame(tk.Frame):
     def __init__(self, master, controller):
@@ -48,7 +46,7 @@ class TaskListFrame(tk.Frame):
         item = self.tree.item(selected[0])
         values = item['values']
 
-        # グループ行は無視
+        # グループ行は無視（ID列が文字列の場合グループ）
         if not isinstance(values[0], int):
             messagebox.showinfo("情報", "タスクを選択してください。")
             return
@@ -79,8 +77,7 @@ class TaskListFrame(tk.Frame):
         no_date = []
 
         for task in tasks:
-            task_id, title, location, date, person_id, memo = task
-
+            date = task[3]  # timeカラムを日付として使用
             if date:
                 grouped.setdefault(date, []).append(task)
             else:
@@ -100,13 +97,21 @@ class TaskListFrame(tk.Frame):
 
         self.tree.tag_configure("group", background="#f0f0f0", font=("Arial", 10, "bold"))
 
-    def format_task_row(self, task):
-        task_id, title, location, date, person_id, memo = task
-        person_name = ""
 
+    def format_task_row(self, task):
+        # taskは17カラムある
+        task_id = task[0]
+        title = task[1]
+        location = task[2]
+        date = task[3]  # ここはtimeカラムだと思いますが、あなたの用途に合わせて調整してください
+        person_id = task[5]
+        memo = task[6]
+
+        person_name = ""
         if person_id:
             person = get_person_by_id(person_id)
             if person:
-                person_name = person[1]  # 名前を取得
+                person_name = person[1]
 
         return (task_id, title, location, date, person_name, memo)
+

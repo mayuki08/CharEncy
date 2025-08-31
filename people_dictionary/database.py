@@ -136,7 +136,7 @@ def init_task_db():
     conn.commit()
     conn.close()
 
-def add_task(task, location="", time="", partner="", partner_id=None, memo="", customs=None):
+def add_task(task, location="", time="", partner="", partner_id=None, memo="", *customs):
     customs = customs or [""] * 10
     conn = sqlite3.connect('tasklist.db')
     c = conn.cursor()
@@ -189,7 +189,6 @@ def update_task(task_id, task, location, time, partner, partner_id, memo, custom
     ''', (task, location, time, partner, partner_id, memo, *customs, task_id))
     conn.commit()
     conn.close()
-
 def delete_task(task_id):
     conn = sqlite3.connect('tasklist.db')
     c = conn.cursor()
@@ -201,10 +200,13 @@ def search_tasks(keyword):
     conn = sqlite3.connect('tasklist.db')
     c = conn.cursor()
     c.execute('''
-        SELECT id, task, location, time, partner, memo
+        SELECT id, task, location, time, partner, partner_id, memo,
+               custom1, custom2, custom3, custom4, custom5,
+               custom6, custom7, custom8, custom9, custom10
         FROM tasks
         WHERE task LIKE ? OR location LIKE ? OR memo LIKE ?
     ''', (f'%{keyword}%', f'%{keyword}%', f'%{keyword}%'))
     rows = c.fetchall()
     conn.close()
     return rows
+

@@ -1,6 +1,6 @@
-#frames/task_detail.py
 import tkinter as tk
 from tkinter import messagebox, font
+
 from database import get_task_by_id, delete_task
 
 class TaskDetailFrame(tk.Frame):
@@ -13,14 +13,29 @@ class TaskDetailFrame(tk.Frame):
         title_font = font.Font(family="Arial", size=30, weight="bold")
         entry_font = font.Font(family="Arial", size=15)
 
-        # --- 中央揃え用フレーム ---
-        center_frame = tk.Frame(self)
-        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+        # --- スクロール対応用キャンバスとフレーム ---
+        canvas = tk.Canvas(self)
+        scrollbar = tk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        scroll_frame = tk.Frame(canvas)
 
-        tk.Label(center_frame, text="タスク詳細", font=title_font).pack(pady=20)
-        tk.Frame(center_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
+        scroll_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+        )
 
-        form = tk.Frame(center_frame)
+        canvas.create_window((0, 0), window=scroll_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # --- タイトル ---
+        tk.Label(scroll_frame, text="タスク詳細", font=title_font).pack(pady=20)
+        tk.Frame(scroll_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
+
+        form = tk.Frame(scroll_frame)
         form.pack(pady=10)
 
         # --- 変数定義 ---
@@ -28,27 +43,28 @@ class TaskDetailFrame(tk.Frame):
         self.location_var = tk.StringVar()
         self.time_var = tk.StringVar()
         self.partner_var = tk.StringVar()
+        self.memo_text = None  # Textウィジェットは後で定義
+        self.custom_vars = [tk.StringVar() for _ in range(10)]
 
-        # --- タスク名（表示専用） ---
-        tk.Label(form, text="タスク", font=entry_font).grid(row=0, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.task_var, font=entry_font, width=30, state="readonly").grid(row=0, column=1, pady=5)
+        # --- フォーム項目 ---
+        # 標準項目
+        labels = ["タスク", "場所", "時間", "相手", "備考"]
+        vars_ = [self.task_var, self.location_var, self.time_var, self.partner_var, None]
 
-        # --- 場所 ---
-        tk.Label(form, text="場所", font=entry_font).grid(row=1, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.location_var, font=entry_font, width=30, state="readonly").grid(row=1, column=1, pady=5)
+        for i, (label_text, var) in enumerate(zip(labels, vars_)):
+            tk.Label(form, text=label_text, font=entry_font).grid(row=i, column=0, sticky="e", pady=5)
+            if label_text == "備考":
+                self.memo_text = tk.Text(form, width=30, height=5, font=entry_font, state="disabled")
+                self.memo_text.grid(row=i, column=1, pady=5)
+            else:
+                entry = tk.Entry(form, textvariable=var, font=entry_font, width=30, state="readonly")
+                entry.grid(row=i, column=1, pady=5)
 
-        # --- 時間 ---
-        tk.Label(form, text="時間", font=entry_font).grid(row=2, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.time_var, font=entry_font, width=30, state="readonly").grid(row=2, column=1, pady=5)
-
-        # --- 相手名（表示専用） ---
-        tk.Label(form, text="相手", font=entry_font).grid(row=3, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.partner_var, font=entry_font, width=30, state="readonly").grid(row=3, column=1, pady=5)
-
-        # --- 備考（Textウィジェット） ---
-        tk.Label(form, text="備考", font=entry_font).grid(row=4, column=0, sticky="ne", pady=10)
-        self.memo_text = tk.Text(form, width=30, height=5, font=entry_font, state="disabled")
-        self.memo_text.grid(row=4, column=1, pady=10)
+        # カスタムフィールド表示
+        for i in range(10):
+            tk.Label(form, text=f"カスタム{i+1}", font=entry_font).grid(row=5+i, column=0, sticky="e", pady=5)
+            entry = tk.Entry(form, textvariable=self.custom_vars[i], font=entry_font, width=30, state="readonly")
+            entry.grid(row=5+i, column=1, pady=5)
 
         # --- ボタンホバー処理 ---
         def on_enter(e): e.widget['background'] = '#F1F1F1'
@@ -57,19 +73,19 @@ class TaskDetailFrame(tk.Frame):
         button_style = {"font": entry_font, "width": 20, "relief": "raised", "bd": 4, "bg": "#EEEEEE"}
 
         # --- 編集ボタン ---
-        edit_btn = tk.Button(center_frame, text="← 編集", command=self.go_to_edit_frame, **button_style)
+        edit_btn = tk.Button(scroll_frame, text="← 編集", command=self.go_to_edit_frame, **button_style)
         edit_btn.pack(pady=5)
         edit_btn.bind("<Enter>", on_enter)
         edit_btn.bind("<Leave>", on_leave)
 
         # --- 削除ボタン ---
-        delete_btn = tk.Button(center_frame, text="削除", command=self.delete_task_confirm, **button_style)
+        delete_btn = tk.Button(scroll_frame, text="削除", command=self.delete_task_confirm, **button_style)
         delete_btn.pack(pady=5)
         delete_btn.bind("<Enter>", on_enter)
         delete_btn.bind("<Leave>", on_leave)
 
         # --- 戻るボタン ---
-        back_btn = tk.Button(center_frame, text="← 一覧に戻る",
+        back_btn = tk.Button(scroll_frame, text="← 一覧に戻る",
                              command=lambda: controller.show_frame("TaskListFrame"), **button_style)
         back_btn.pack(pady=10)
         back_btn.bind("<Enter>", on_enter)
@@ -90,6 +106,11 @@ class TaskDetailFrame(tk.Frame):
             self.memo_text.delete("1.0", tk.END)
             self.memo_text.insert("1.0", task[6] or "")
             self.memo_text.config(state="disabled")
+
+            # カスタムフィールド(custom1〜custom10)の表示 (task[7]〜task[16])
+            for i in range(10):
+                self.custom_vars[i].set(task[7 + i] or "")
+
         else:
             messagebox.showerror("エラー", "タスク情報の取得に失敗しました。")
 
