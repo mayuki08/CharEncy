@@ -44,7 +44,7 @@ class MainApp(tk.Tk):
         #設定
         setting_menu = tk.Menu(menubar, tearoff=0)
 
-        setting_menu.add_command(label="カスタム",command=lambda: self.open_customwindow(frames_to_load=(SetMenuFrame,CustomLabelFrame,SetTopicControlFrame), 
+        setting_menu.add_command(label="設定ウィンドウ",command=lambda: self.open_customwindow(frames_to_load=(SetMenuFrame,CustomLabelFrame,SetTopicControlFrame), 
         start_frame_class=SetMenuFrame,
         title="人物名鑑アプリ-設定-"))
         menubar.add_cascade(label="設定", menu=setting_menu)
