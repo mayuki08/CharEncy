@@ -1,10 +1,11 @@
-#frames/people_edit.py
+# frames/people_edit.py
 import tkinter as tk
-from tkinter import messagebox, font, filedialog,ttk
+from tkinter import messagebox, font, filedialog, ttk
 from database import get_person_by_id, update_person, delete_person
 import pykakasi
-import os, shutil
-from settings import load_topicbool  # 追加
+import os
+import shutil
+from settings import load_topicbool
 from frames.set_customlabel import load_custom_field_settings
 
 IMAGE_DIR = "images"
@@ -18,7 +19,7 @@ class PeopleEditFrame(tk.Frame):
         self.topic_control = load_topicbool()
 
         if not os.path.exists(IMAGE_DIR):
-            os.makedirs(IMAGE_DIR)   # フォルダがなければ作成
+            os.makedirs(IMAGE_DIR)
 
         self.kks = pykakasi.kakasi()
 
@@ -26,7 +27,7 @@ class PeopleEditFrame(tk.Frame):
         self.name_var = tk.StringVar()
         self.furigana_var = tk.StringVar()
         self.job_var = tk.StringVar()
-        self.group_var = tk.StringVar()  # ← 追加
+        self.group_var = tk.StringVar()
         self.year_var = tk.StringVar()
         self.month_var = tk.StringVar()
         self.day_var = tk.StringVar()
@@ -48,11 +49,11 @@ class PeopleEditFrame(tk.Frame):
         form = tk.Frame(center_frame)
         form.pack(pady=5)
 
-        # 画像選択ボタン（新規追加）
-        if self.topic_control["pnormalcontrol"][0]: 
+        # 画像選択ボタン（topic_controlで制御）
+        if self.topic_control["pnormalcontrol"][0]:
             tk.Button(form, text="画像選択", command=self.select_profile_image, font=entry_font).grid(row=0, column=1, pady=10, sticky="w")
 
-        # 名前とふりがな（row を +1 ずらす）
+        # 名前とふりがな（rowをずらす）
         tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=1, column=0, pady=10, sticky="e")
         name_entry = tk.Entry(form, textvariable=self.name_var, font=entry_font)
         name_entry.grid(row=1, column=1, pady=10)
@@ -87,38 +88,36 @@ class PeopleEditFrame(tk.Frame):
             tk.Label(date_frame, text="日", font=entry_font).pack(side=tk.LEFT)
 
         # メモ
-        if self.topic_control["pnormalcontrol"][3]: 
+        if self.topic_control["pnormalcontrol"][3]:
             tk.Label(form, text="メモ", font=entry_font).grid(row=6, column=0, pady=10, sticky="ne")
             self.memo_text = tk.Text(form, width=32, height=5, font=("Arial", 12))
             self.memo_text.grid(row=6, column=1, padx=10, pady=10)
         else:
-            self.memo_text = None  # ← 明示的に None を代入
+            self.memo_text = None
 
-        #カスタム項目
+        # カスタム項目（10項目すべて表示）
         self.custom_labeltitles = load_custom_field_settings()["person_custom_labels"]
         self.custom_labels = []
         self.custom_vars = []
+
+        start_row = 7  # カスタム項目開始行
 
         for i in range(10):
             var = tk.StringVar()
             self.custom_vars.append(var)
 
-            if self.topic_control["pcustomcontrol"][i]:
-                label = tk.Label(form, text=self.custom_labeltitles[i], font=entry_font)
-                entry = tk.Entry(form, textvariable=var, font=entry_font)
+            label = tk.Label(form, text=self.custom_labeltitles[i], font=entry_font)
+            entry = tk.Entry(form, textvariable=var, font=entry_font)
 
-                label.grid(row=7+i, column=0, pady=10, sticky="e")
-                entry.grid(row=7+i, column=1, pady=10)
+            label.grid(row=start_row + i, column=0, pady=10, sticky="e")
+            entry.grid(row=start_row + i, column=1, pady=10)
 
-                self.custom_labels.append(label)
-            else:
-                self.custom_labels.append(None)  # 非表示なら None を入れておく
-            
-        # ホバーエフェクト
+            self.custom_labels.append(label)
+
+        # ボタンホバーエフェクト
         def on_enter(e): e.widget['background'] = '#F1F1F1'
         def on_leave(e): e.widget['background'] = '#EEEEEE'
 
-        # --- ボタン類 ---
         button_style = {"font": entry_font, "width": 20, "relief": "raised", "bd": 4}
 
         save_btn = tk.Button(center_frame, text="編集を保存", command=self.save_changes, **button_style)
@@ -144,8 +143,9 @@ class PeopleEditFrame(tk.Frame):
         if person:
             self.name_var.set(person[1] or "")
             self.furigana_var.set(person[2] or "")
-            self.group_var.set(person[3] or "")  # ← 追加
+            self.group_var.set(person[3] or "")
             self.job_var.set(person[4] or "")
+
             if self.memo_text:
                 self.memo_text.delete("1.0", tk.END)
                 self.memo_text.insert("1.0", person[6] or "")
@@ -160,27 +160,73 @@ class PeopleEditFrame(tk.Frame):
                 self.year_var.set("")
                 self.month_var.set("")
                 self.day_var.set("")
+
+            # ここで画像パスをセット
+            self.image_path_var.set(person[7] or "")
+
+            # カスタムは8〜17
+            customs = person[8:18]
+            for i, val in enumerate(customs):
+                self.custom_vars[i].set(val or "")
         else:
             messagebox.showerror("エラー", "人物情報の取得に失敗しました。")
+
+    def delete_person_confirm(self):
+        if self.person_id is None:
+            messagebox.showerror("エラー", "人物が選択されていません。")
+            return
+
+        if messagebox.askyesno("確認", "この人物を削除してもよろしいですか？"):
+            delete_person(self.person_id)
+            messagebox.showinfo("削除完了", "人物を削除しました。")
+
+            # 一覧を更新してリスト画面へ戻る
+            if "PeopleListFrame" in self.controller.frames:
+                self.controller.frames["PeopleListFrame"].refresh_list()
+            self.controller.show_frame("PeopleListFrame")
+
+    def select_profile_image(self):
+        filetypes = [("Image files", "*.png *.jpg *.jpeg *.gif"), ("All files", "*.*")]
+        filepath = filedialog.askopenfilename(title="プロフィール画像を選択", filetypes=filetypes)
+        if filepath:
+            filename = os.path.basename(filepath)
+            dest_path = os.path.join(IMAGE_DIR, filename)
+            try:
+                shutil.copyfile(filepath, dest_path)
+                self.image_path_var.set(dest_path)
+                messagebox.showinfo("画像設定", "プロフィール画像を設定しました。")
+            except Exception as e:
+                messagebox.showerror("エラー", f"画像のコピーに失敗しました: {e}")
+
+    def auto_fill_furigana(self, event=None):
+        if not self.furigana_var.get():
+            text = self.name_var.get()
+            if text:
+                result = self.kks.convert(text)
+                furigana = "".join([item["hira"] for item in result])
+                self.furigana_var.set(furigana)
+
+    def refresh_labels(self):
+        new_labels = load_custom_field_settings()["person_custom_labels"]
+        for i in range(10):
+            self.custom_labels[i]["text"] = new_labels[i]
 
     def save_changes(self):
         if self.person_id is None:
             messagebox.showerror("エラー", "人物が選択されていません。")
             return
 
-        name = self.name_var.get()
-        furigana = self.furigana_var.get()
-        group = self.group_var.get()
-        job = self.job_var.get()
-        year = self.year_var.get()
-        month = self.month_var.get().zfill(2)
-        day = self.day_var.get().zfill(2)
+        name = self.name_var.get().strip()
+        furigana = self.furigana_var.get().strip()
+        group = self.group_var.get().strip()
+        job = self.job_var.get().strip()
+        year = self.year_var.get().strip()
+        month = self.month_var.get().strip().zfill(2)
+        day = self.day_var.get().strip().zfill(2)
         date = f"{year}-{month}-{day}" if year and month and day else ""
         memo = self.memo_text.get("1.0", "end-1c") if self.memo_text else ""
-        image_path = self.image_path_var.get()
-        custom = []
-        for i in range(10):
-            custom.append(self.custom_vars[i].get())
+        image_path = self.image_path_var.get().strip()
+        custom = [var.get().strip() for var in self.custom_vars]
 
         if not name:
             messagebox.showwarning("入力エラー", "名前は必須です。")
@@ -193,50 +239,11 @@ class PeopleEditFrame(tk.Frame):
 
         messagebox.showinfo("保存完了", "人物情報を更新しました。")
 
-        # 詳細画面を再読み込みして表示する
-        self.controller.frames["PeopleDetailFrame"].set_person_id(self.person_id)
-        self.controller.show_frame("PeopleDetailFrame")
-        
-        self.controller.frames["PeopleListFrame"].refresh_list()
-        self.controller.show_frame("PeopleDetailFrame")
-
-    def delete_person_confirm(self):
-        if self.person_id is None:
-            messagebox.showerror("エラー", "人物が選択されていません。")
-            return
-
-        if messagebox.askyesno("確認", "この人物を削除してもよろしいですか？"):
-            delete_person(self.person_id)
-            messagebox.showinfo("削除", "人物を削除しました。")
+        # 詳細画面を再読み込みして表示
+        if "PeopleDetailFrame" in self.controller.frames:
+            self.controller.frames["PeopleDetailFrame"].set_person_id(self.person_id)
+        if "PeopleListFrame" in self.controller.frames:
             self.controller.frames["PeopleListFrame"].refresh_list()
-            self.controller.show_frame("PeopleListFrame")
-    
-    def auto_fill_furigana(self, event=None):
-        name = self.name_var.get()
-        if not name:
-            return
-        result = self.kks.convert(name)
-        furigana = ''.join([item['hira'] for item in result])
-        self.furigana_var.set(furigana)
 
-    def select_profile_image(self):
-        filepath = filedialog.askopenfilename(filetypes=[("画像ファイル", "*.png;*.jpg;*.jpeg")])
-        if filepath:
-            if not os.path.exists(IMAGE_DIR):
-                os.makedirs(IMAGE_DIR)
+        self.controller.show_frame("PeopleDetailFrame")
 
-            filename = os.path.basename(filepath)
-            dest_path = os.path.join(IMAGE_DIR, filename)
-
-            try:
-                shutil.copy(filepath, dest_path)
-                self.image_path_var.set(dest_path)
-                messagebox.showinfo("画像選択", f"画像をコピーして保存しました: {dest_path}")
-            except Exception as e:
-                messagebox.showerror("エラー", f"画像コピー失敗: {e}")
-
-            
-    def refresh_labels(self):
-        new_labels = load_custom_field_settings()["person_custom_labels"]
-        for i in range(10):
-            self.custom_labels[i]["text"] = new_labels[i]

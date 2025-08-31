@@ -210,3 +210,10 @@ def search_tasks(keyword):
     conn.close()
     return rows
 
+def get_person_by_name(name):
+    conn = sqlite3.connect('people.db')
+    c = conn.cursor()
+    c.execute('SELECT id, name FROM people WHERE name = ?', (name,))
+    person = c.fetchone()
+    conn.close()
+    return person

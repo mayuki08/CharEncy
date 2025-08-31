@@ -27,8 +27,13 @@ class PeopleListFrame(tk.Frame):
         tree_frame.pack(pady=10, fill=tk.BOTH, expand=True)
 
         self.style = ttk.Style()
-        self.style.theme_use("default")
-        self.style.configure("Treeview", rowheight=60)
+        self.style.theme_use("clam")  # "clam"はrowheight反映しやすいテーマの1つ
+
+        self.style.configure("Custom.Treeview",
+                            rowheight=120,
+                            font=("Arial", 12))
+
+
 
         self.tree = ttk.Treeview(tree_frame, columns=("ID", "名前", "ふりがな", "グループ", "職業"), show="tree headings")
         self.tree.column("ID", width=0, stretch=False)  # ← 非表示
@@ -41,6 +46,7 @@ class PeopleListFrame(tk.Frame):
             self.tree.column(col, anchor="center")
 
         self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.tree.configure(style="Custom.Treeview")
 
         scrollbar = tk.Scrollbar(tree_frame, orient="vertical", command=self.tree.yview)
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
