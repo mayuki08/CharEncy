@@ -1,7 +1,13 @@
 #frames/people_edit.py
 import tkinter as tk
-from tkinter import messagebox, font, ttk
+from tkinter import messagebox, font, filedialog,ttk
 from database import get_person_by_id, update_person, delete_person
+import pykakasi
+import os, shutil
+from settings import load_topicbool  # 追加
+from frames.set_customlabel import load_custom_field_settings
+
+IMAGE_DIR = "images"
 
 class PeopleEditFrame(tk.Frame):
     def __init__(self, master, controller):
@@ -9,70 +15,106 @@ class PeopleEditFrame(tk.Frame):
         self.controller = controller
         self.person_id = None
 
-        # --- フォント設定 ---
-        title_font = font.Font(family="Arial", size=30, weight="bold")
-        entry_font = font.Font(family="Arial", size=15)
+        self.topic_control = load_topicbool()
 
-        # --- 中央揃え用フレーム ---
-        center_frame = tk.Frame(self)
-        center_frame.place(relx=0.5, rely=0.5, anchor="center")
+        if not os.path.exists(IMAGE_DIR):
+            os.makedirs(IMAGE_DIR)   # フォルダがなければ作成
 
-        tk.Label(center_frame, text="人物編集", font=title_font).pack(pady=20)
-        tk.Frame(center_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
+        self.kks = pykakasi.kakasi()
 
-        form = tk.Frame(center_frame)
-        form.pack(pady=10)
-
-        # --- 変数 ---
+        # 入力用変数
         self.name_var = tk.StringVar()
         self.furigana_var = tk.StringVar()
-        self.group_var = tk.StringVar()  # ← 追加
         self.job_var = tk.StringVar()
+        self.group_var = tk.StringVar()  # ← 追加
         self.year_var = tk.StringVar()
         self.month_var = tk.StringVar()
         self.day_var = tk.StringVar()
-        self.memo_var = tk.StringVar()
+        self.image_path_var = tk.StringVar()
 
-        # --- 名前 ---
-        tk.Label(form, text="名前", font=entry_font).grid(row=0, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.name_var, font=entry_font, width=30).grid(row=0, column=1, pady=5)
+        # 中央寄せ用フレーム
+        center_frame = tk.Frame(self)
+        center_frame.place(relx=0.5, rely=0.5, anchor="center")
 
-        # --- ふりがな ---
-        tk.Label(form, text="ふりがな", font=entry_font).grid(row=1, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.furigana_var, font=entry_font, width=30).grid(row=1, column=1, pady=5)
+        title_font = font.Font(family="Arial", size=30, weight="bold")
+        entry_font = font.Font(family="Arial", size=15)
 
-        # グループ（Comboboxに変更）
-        tk.Label(form, text="グループ", font=entry_font).grid(row=2, column=0, pady=10, sticky="e")
+        # タイトル
+        tk.Label(center_frame, text="人物登録", font=title_font).pack(pady=20)
 
-        group_options = ["家族", "友人", "仕事", "学校", "趣味", "その他"]
-        self.group_combobox = ttk.Combobox(form, textvariable=self.group_var, values=group_options, font=entry_font, width=29, state="normal")
-        self.group_combobox.grid(row=2, column=1, pady=10)
+        # 横線
+        tk.Frame(center_frame, height=3, bg="black").pack(fill="x", padx=80, pady=(0, 50))
 
-        # --- 職業 ---
-        tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=3, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.job_var, font=entry_font, width=30).grid(row=3, column=1, pady=5)
+        form = tk.Frame(center_frame)
+        form.pack(pady=5)
 
-        # --- 出会った日 ---
-        tk.Label(form, text="出会った日", font=entry_font).grid(row=4, column=0, sticky="e")
+        # 画像選択ボタン（新規追加）
+        if self.topic_control["pnormalcontrol"][0]: 
+            tk.Button(form, text="画像選択", command=self.select_profile_image, font=entry_font).grid(row=0, column=1, pady=10, sticky="w")
 
-        date_frame = tk.Frame(form)
-        date_frame.grid(row=4, column=1, sticky="w")
+        # 名前とふりがな（row を +1 ずらす）
+        tk.Label(form, text="名前 *", font=entry_font, fg="red").grid(row=1, column=0, pady=10, sticky="e")
+        name_entry = tk.Entry(form, textvariable=self.name_var, font=entry_font)
+        name_entry.grid(row=1, column=1, pady=10)
+        name_entry.bind("<FocusOut>", self.auto_fill_furigana)
 
-        tk.Entry(date_frame, textvariable=self.year_var, width=6, font=entry_font).pack(side=tk.LEFT)
-        tk.Label(date_frame, text="年", font=entry_font).pack(side=tk.LEFT)
+        tk.Label(form, text="ふりがな *", font=entry_font, fg="red").grid(row=2, column=0, pady=10, sticky="e")
+        tk.Entry(form, textvariable=self.furigana_var, font=entry_font).grid(row=2, column=1, pady=10)
 
-        tk.Entry(date_frame, textvariable=self.month_var, width=4, font=entry_font).pack(side=tk.LEFT)
-        tk.Label(date_frame, text="月", font=entry_font).pack(side=tk.LEFT)
+        # 職業
+        if self.topic_control["pnormalcontrol"][0]:
+            tk.Label(form, text="職業/肩書き", font=entry_font).grid(row=3, column=0, pady=10, sticky="e")
+            tk.Entry(form, textvariable=self.job_var, font=entry_font).grid(row=3, column=1, pady=10)
 
-        tk.Entry(date_frame, textvariable=self.day_var, width=4, font=entry_font).pack(side=tk.LEFT)
-        tk.Label(date_frame, text="日", font=entry_font).pack(side=tk.LEFT)
+        # グループ
+        if self.topic_control["pnormalcontrol"][1]:
+            tk.Label(form, text="グループ", font=entry_font).grid(row=4, column=0, pady=10, sticky="e")
+            group_options = ["家族", "友人", "仕事", "学校", "趣味"]
+            self.group_combobox = ttk.Combobox(form, textvariable=self.group_var, values=group_options, font=entry_font, width=29, state="normal")
+            self.group_combobox.grid(row=4, column=1, pady=10)
 
-        # --- メモ ---
-        tk.Label(form, text="備考", font=entry_font).grid(row=5, column=0, sticky="ne", pady=10)
-        self.memo_text = tk.Text(form, width=30, height=5, font=entry_font)
-        self.memo_text.grid(row=5, column=1, pady=10)
+        # 出会った日
+        if self.topic_control["pnormalcontrol"][2]:
+            tk.Label(form, text="出会った日", font=entry_font).grid(row=5, column=0, pady=10, sticky="e")
+            date_frame = tk.Frame(form)
+            date_frame.grid(row=5, column=1, pady=10)
 
-        # --- ボタンホバー関数 ---
+            tk.Entry(date_frame, textvariable=self.year_var, width=6, font=entry_font).pack(side=tk.LEFT)
+            tk.Label(date_frame, text="年", font=entry_font).pack(side=tk.LEFT, padx=(2, 5))
+            tk.Entry(date_frame, textvariable=self.month_var, width=4, font=entry_font).pack(side=tk.LEFT)
+            tk.Label(date_frame, text="月", font=entry_font).pack(side=tk.LEFT, padx=(2, 5))
+            tk.Entry(date_frame, textvariable=self.day_var, width=4, font=entry_font).pack(side=tk.LEFT)
+            tk.Label(date_frame, text="日", font=entry_font).pack(side=tk.LEFT)
+
+        # メモ
+        if self.topic_control["pnormalcontrol"][3]: 
+            tk.Label(form, text="メモ", font=entry_font).grid(row=6, column=0, pady=10, sticky="ne")
+            self.memo_text = tk.Text(form, width=32, height=5, font=("Arial", 12))
+            self.memo_text.grid(row=6, column=1, padx=10, pady=10)
+        else:
+            self.memo_text = None  # ← 明示的に None を代入
+
+        #カスタム項目
+        self.custom_labeltitles = load_custom_field_settings()["person_custom_labels"]
+        self.custom_labels = []
+        self.custom_vars = []
+
+        for i in range(10):
+            var = tk.StringVar()
+            self.custom_vars.append(var)
+
+            if self.topic_control["pcustomcontrol"][i]:
+                label = tk.Label(form, text=self.custom_labeltitles[i], font=entry_font)
+                entry = tk.Entry(form, textvariable=var, font=entry_font)
+
+                label.grid(row=7+i, column=0, pady=10, sticky="e")
+                entry.grid(row=7+i, column=1, pady=10)
+
+                self.custom_labels.append(label)
+            else:
+                self.custom_labels.append(None)  # 非表示なら None を入れておく
+            
+        # ホバーエフェクト
         def on_enter(e): e.widget['background'] = '#F1F1F1'
         def on_leave(e): e.widget['background'] = '#EEEEEE'
 
@@ -104,8 +146,9 @@ class PeopleEditFrame(tk.Frame):
             self.furigana_var.set(person[2] or "")
             self.group_var.set(person[3] or "")  # ← 追加
             self.job_var.set(person[4] or "")
-            self.memo_text.delete("1.0", tk.END)
-            self.memo_text.insert("1.0", person[6] or "")
+            if self.memo_text:
+                self.memo_text.delete("1.0", tk.END)
+                self.memo_text.insert("1.0", person[6] or "")
 
             date = person[5] or ""
             if "-" in date:
@@ -125,24 +168,35 @@ class PeopleEditFrame(tk.Frame):
             messagebox.showerror("エラー", "人物が選択されていません。")
             return
 
-        year = self.year_var.get().zfill(4)
+        name = self.name_var.get()
+        furigana = self.furigana_var.get()
+        group = self.group_var.get()
+        job = self.job_var.get()
+        year = self.year_var.get()
         month = self.month_var.get().zfill(2)
         day = self.day_var.get().zfill(2)
-        date = f"{year}-{month}-{day}"
+        date = f"{year}-{month}-{day}" if year and month and day else ""
+        memo = self.memo_text.get("1.0", "end-1c") if self.memo_text else ""
+        image_path = self.image_path_var.get()
+        custom = []
+        for i in range(10):
+            custom.append(self.custom_vars[i].get())
 
-        memo = self.memo_text.get("1.0", tk.END).strip()
+        if not name:
+            messagebox.showwarning("入力エラー", "名前は必須です。")
+            return
+        if not furigana:
+            messagebox.showwarning("入力エラー", "ふりがなは必須です。")
+            return
 
-        update_person(
-            self.person_id,
-            self.name_var.get(),
-            self.furigana_var.get(),
-            self.group_var.get(),  # ← 追加
-            self.job_var.get(),
-            date,
-            memo
-        )
+        update_person(self.person_id, name, furigana, group, job, date, memo, image_path, *custom)
 
-        messagebox.showinfo("完了", "編集内容を保存しました。")
+        messagebox.showinfo("保存完了", "人物情報を更新しました。")
+
+        # 詳細画面を再読み込みして表示する
+        self.controller.frames["PeopleDetailFrame"].set_person_id(self.person_id)
+        self.controller.show_frame("PeopleDetailFrame")
+        
         self.controller.frames["PeopleListFrame"].refresh_list()
         self.controller.show_frame("PeopleDetailFrame")
 
@@ -156,3 +210,33 @@ class PeopleEditFrame(tk.Frame):
             messagebox.showinfo("削除", "人物を削除しました。")
             self.controller.frames["PeopleListFrame"].refresh_list()
             self.controller.show_frame("PeopleListFrame")
+    
+    def auto_fill_furigana(self, event=None):
+        name = self.name_var.get()
+        if not name:
+            return
+        result = self.kks.convert(name)
+        furigana = ''.join([item['hira'] for item in result])
+        self.furigana_var.set(furigana)
+
+    def select_profile_image(self):
+        filepath = filedialog.askopenfilename(filetypes=[("画像ファイル", "*.png;*.jpg;*.jpeg")])
+        if filepath:
+            if not os.path.exists(IMAGE_DIR):
+                os.makedirs(IMAGE_DIR)
+
+            filename = os.path.basename(filepath)
+            dest_path = os.path.join(IMAGE_DIR, filename)
+
+            try:
+                shutil.copy(filepath, dest_path)
+                self.image_path_var.set(dest_path)
+                messagebox.showinfo("画像選択", f"画像をコピーして保存しました: {dest_path}")
+            except Exception as e:
+                messagebox.showerror("エラー", f"画像コピー失敗: {e}")
+
+            
+    def refresh_labels(self):
+        new_labels = load_custom_field_settings()["person_custom_labels"]
+        for i in range(10):
+            self.custom_labels[i]["text"] = new_labels[i]

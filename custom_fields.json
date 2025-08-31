@@ -1,0 +1,63 @@
+{
+    "pnormalcontrol": [
+        false,
+        false,
+        false,
+        false,
+        false
+    ],
+    "pcustomcontrol": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+    ],
+    "tnormalcontrol": [
+        true,
+        true,
+        false,
+        false
+    ],
+    "tcustomcontrol": [
+        false,
+        true,
+        true,
+        true,
+        false,
+        false,
+        false,
+        true,
+        false,
+        false
+    ],
+    "person_custom_labels": [
+        "カスタム1",
+        "カスタム2",
+        "カスタム3",
+        "カスタム4",
+        "カスタム5",
+        "カスタム6",
+        "カスタム7",
+        "カスタム8",
+        "カスタム9",
+        "カスタム10"
+    ],
+    "task_custom_labels": [
+        "カスタム1",
+        "カスタム2",
+        "カスタム3",
+        "カスタム4",
+        "カスタム5",
+        "カスタム6",
+        "カスタム7",
+        "カスタム8",
+        "カスタム9",
+        "カスタム10"
+    ]
+}

@@ -1,4 +1,4 @@
-#frames/customfieldsetting.py
+#frames/set_customlabel.py
 import tkinter as tk
 from tkinter import font, messagebox
 import json
@@ -20,7 +20,7 @@ def save_custom_field_settings(data):
     with open(SETTINGS_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
 
-class CustomFieldSettingFrame(tk.Frame):
+class CustomLabelFrame(tk.Frame):
     def __init__(self, master, controller):
         super().__init__(master)
         self.controller = controller
@@ -63,7 +63,7 @@ class CustomFieldSettingFrame(tk.Frame):
         save_btn.pack(pady=20)
 
         # 戻るボタン
-        back_btn = tk.Button(self, text="← メニューに戻る", font=label_font, command=lambda: self.controller.show_frame("MenuFrame"))
+        back_btn = tk.Button(self, text="← メニューに戻る", font=label_font, command=lambda: self.controller.show_frame("SetMenuFrame"))
         back_btn.pack()
 
     def load_settings(self):
@@ -77,10 +77,11 @@ class CustomFieldSettingFrame(tk.Frame):
 
     def save_settings(self):
         data = {
-            "people": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.people_fields_vars)],
-            "tasks": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.task_fields_vars)],
+            "person_custom_labels": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.people_fields_vars)],
+            "task_custom_labels": [var.get().strip() or f"custom{i+1}" for i, var in enumerate(self.task_fields_vars)],
         }
         save_custom_field_settings(data)
         messagebox.showinfo("保存完了", "カスタム項目名を保存しました。")
         if "PeopleRegisterFrame" in self.controller.frames:
             self.controller.frames["PeopleRegisterFrame"].refresh_labels()
+            self.controller.frames["PeopleEditFrame"].refresh_labels()

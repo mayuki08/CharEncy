@@ -73,7 +73,7 @@ def get_person_by_id(person_id):
     conn.close()
     return person
 
-def update_person(person_id, name, furigana, grouping, job, met_date, memo, customs=None):
+def update_person(person_id, name, furigana, grouping, job, met_date, memo, image_path, *customs):
     customs = customs or [""] * 10
     conn = sqlite3.connect('people.db')
     c = conn.cursor()
@@ -83,7 +83,7 @@ def update_person(person_id, name, furigana, grouping, job, met_date, memo, cust
             custom1=?, custom2=?, custom3=?, custom4=?, custom5=?,
             custom6=?, custom7=?, custom8=?, custom9=?, custom10=?
         WHERE id=?
-    ''', (name, furigana, grouping, job, met_date, memo, *customs, person_id))
+    ''', (name, furigana, grouping, job, met_date, memo, image_path, *customs, person_id))
     conn.commit()
     conn.close()
 

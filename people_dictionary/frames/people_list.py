@@ -31,10 +31,12 @@ class PeopleListFrame(tk.Frame):
         self.style.configure("Treeview", rowheight=60)
 
         self.tree = ttk.Treeview(tree_frame, columns=("ID", "名前", "ふりがな", "グループ", "職業"), show="tree headings")
+        self.tree.column("ID", width=0, stretch=False)  # ← 非表示
+        self.tree.heading("ID", text="ID")
         self.tree.heading("#0", text="写真")
         self.tree.column("#0", width=60, anchor="center")  # 画像列
 
-        for col in ("ID", "名前", "ふりがな", "グループ", "職業"):
+        for col in ("名前", "ふりがな", "グループ", "職業"):
             self.tree.heading(col, text=col)
             self.tree.column(col, anchor="center")
 
@@ -81,7 +83,6 @@ class PeopleListFrame(tk.Frame):
     def load_profile_image(self, path, size=(60, 60)):
         if not path or not os.path.exists(path):
             # ファイルが存在しないときはグレーのプレースホルダー画像
-            print("file not found")
             return ImageTk.PhotoImage(Image.new("RGB", size, color="gray"))
         try:
             img = Image.open(path)
@@ -96,6 +97,7 @@ class PeopleListFrame(tk.Frame):
         self.display_grouped(people)
 
     def display_grouped(self, people):
+        self.image_refs.clear()  # ← 追加：古い画像参照をクリア
         self.tree.delete(*self.tree.get_children())
         people = sorted(people, key=lambda x: x[2])  # ふりがなでソート
 
@@ -134,13 +136,18 @@ class PeopleListFrame(tk.Frame):
         for group, persons in grouped.items():
             if not persons:
                 continue
-            self.tree.insert('', 'end', values=(f"--- {group} ---", "", "", "", ""), tags=("group",))
+            self.tree.insert('', 'end', values=("", f"--- {group} ---", "", "", "", ""), tags=("group",))
             for p in persons:
-                img = self.load_profile_image(p[7])  # p[7] が画像パスだと仮定
-                self.image_refs.append(img)  # GC対策
+                img = self.load_profile_image(p[7])
+                self.image_refs.append(img)
                 self.tree.insert('', 'end', image=img, values=(p[0], p[1], p[2], p[3], p[4]))
+
         if others:
-            self.tree.insert('', 'end', values=("--- その他 ---", "", "", "", ""), tags=("group",))
+            self.tree.insert('', 'end', values=("", "--- その他 ---", "", "", "", ""), tags=("group",))
+            for p in others:
+                img = self.load_profile_image(p[7])
+                self.image_refs.append(img)
+                self.tree.insert('', 'end', image=img, values=(p[0], p[1], p[2], p[3], p[4]))
 
 #        for p in persons:
 #            img = self.load_profile_image(p[7])  # p[7] が画像パスだと仮定
