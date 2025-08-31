@@ -16,6 +16,7 @@ class TaskDetailFrame(tk.Frame):
         center_frame = tk.Frame(self)
         center_frame.place(relx=0.5, rely=0.5, anchor="center")
 
+        # --- タイトル ---
         tk.Label(center_frame, text="タスク詳細", font=title_font).pack(pady=20)
         tk.Frame(center_frame, height=3, bg="black").pack(fill="x", padx=120, pady=(0, 30))
 
@@ -27,27 +28,27 @@ class TaskDetailFrame(tk.Frame):
         self.location_var = tk.StringVar()
         self.time_var = tk.StringVar()
         self.partner_var = tk.StringVar()
+        self.memo_text = None  # Textウィジェットは後で定義
+        self.custom_vars = [tk.StringVar() for _ in range(10)]
 
-        # --- タスク名（表示専用） ---
-        tk.Label(form, text="タスク", font=entry_font).grid(row=0, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.task_var, font=entry_font, width=30, state="readonly").grid(row=0, column=1, pady=5)
+        # --- フォーム項目 ---
+        labels = ["タスク", "場所", "時間", "相手", "備考"]
+        vars_ = [self.task_var, self.location_var, self.time_var, self.partner_var, None]
 
-        # --- 場所 ---
-        tk.Label(form, text="場所", font=entry_font).grid(row=1, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.location_var, font=entry_font, width=30, state="readonly").grid(row=1, column=1, pady=5)
+        for i, (label_text, var) in enumerate(zip(labels, vars_)):
+            tk.Label(form, text=label_text, font=entry_font).grid(row=i, column=0, sticky="e", pady=5)
+            if label_text == "備考":
+                self.memo_text = tk.Text(form, width=30, height=5, font=entry_font, state="disabled")
+                self.memo_text.grid(row=i, column=1, pady=5)
+            else:
+                entry = tk.Entry(form, textvariable=var, font=entry_font, width=30, state="readonly")
+                entry.grid(row=i, column=1, pady=5)
 
-        # --- 時間 ---
-        tk.Label(form, text="時間", font=entry_font).grid(row=2, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.time_var, font=entry_font, width=30, state="readonly").grid(row=2, column=1, pady=5)
-
-        # --- 相手名（表示専用） ---
-        tk.Label(form, text="相手", font=entry_font).grid(row=3, column=0, sticky="e")
-        tk.Entry(form, textvariable=self.partner_var, font=entry_font, width=30, state="readonly").grid(row=3, column=1, pady=5)
-
-        # --- 備考（Textウィジェット） ---
-        tk.Label(form, text="備考", font=entry_font).grid(row=4, column=0, sticky="ne", pady=10)
-        self.memo_text = tk.Text(form, width=30, height=5, font=entry_font, state="disabled")
-        self.memo_text.grid(row=4, column=1, pady=10)
+        # カスタムフィールド表示
+        for i in range(10):
+            tk.Label(form, text=f"カスタム{i+1}", font=entry_font).grid(row=5+i, column=0, sticky="e", pady=5)
+            entry = tk.Entry(form, textvariable=self.custom_vars[i], font=entry_font, width=30, state="readonly")
+            entry.grid(row=5+i, column=1, pady=5)
 
         # --- ボタンホバー処理 ---
         def on_enter(e): e.widget['background'] = '#F1F1F1'
@@ -89,6 +90,11 @@ class TaskDetailFrame(tk.Frame):
             self.memo_text.delete("1.0", tk.END)
             self.memo_text.insert("1.0", task[6] or "")
             self.memo_text.config(state="disabled")
+
+            # カスタムフィールド(custom1〜custom10)の表示 (task[7]〜task[16])
+            for i in range(10):
+                self.custom_vars[i].set(task[7 + i] or "")
+
         else:
             messagebox.showerror("エラー", "タスク情報の取得に失敗しました。")
 

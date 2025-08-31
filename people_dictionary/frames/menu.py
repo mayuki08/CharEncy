@@ -1,3 +1,4 @@
+#frames/menu.py
 import tkinter as tk
 from tkinter import font
 from tkinter import ttk
@@ -64,6 +65,7 @@ class MenuFrame(tk.Frame):
         tlist_btn.bind("<Enter>", on_enter)
         tlist_btn.bind("<Leave>", on_leave)
         
+
         # 終了用関数
         def on_enter(e):
             e.widget['background'] = '#F1F1F1'
